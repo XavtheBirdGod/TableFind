@@ -1,5 +1,5 @@
+# Gebruik Apache Rewrite Engine om alle verzoeken naar de public map te sturen
 RewriteEngine On
 
-
-RewriteRule ^$ public/index.php [L]
-RewriteRule ^((?!public/).*)$ public/$1 [L]
+# Stuur alles door naar de public/index.php
+RewriteRule ^(.*)$ public/index.php [QSA,L]
