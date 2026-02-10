@@ -8,7 +8,7 @@ use PDO;
 
 /**
  * UsersRepository
- * Beheert de database-interacties voor gebruikers en hun toegangsrechten.
+ * Beheert alle database-interacties voor gebruikersgegevens.
  */
 final class UsersRepository
 {
@@ -20,7 +20,7 @@ final class UsersRepository
     }
 
     /**
-     * Statische factory methode voor consistente initialisatie.
+     * Statische factory methode voor directe initialisatie.
      */
     public static function make(): self
     {
@@ -28,32 +28,53 @@ final class UsersRepository
     }
 
     /**
-     * Zoekt een actieve gebruiker op basis van e-mailadres voor authenticatie.
+     * Zoekt een gebruiker op basis van hun unieke ID.
      */
-    public function findByEmail(string $email): ?array
+    public function findById(int $id): ?array
     {
-        $sql = "SELECT u.*, r.name as role_name 
-                FROM users u 
-                JOIN roles r ON u.role_id = r.id 
-                WHERE u.email = :email AND u.is_active = 1 
-                LIMIT 1";
-        
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(['email' => $email]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $user ?: null;
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     /**
-     * Haalt alle gebruikers op voor het administratie-overzicht.
+     * Zoekt een gebruiker op basis van hun e-mailadres.
      */
-    public function getAll(): array
+    public function findByEmail(string $email): ?array
     {
-        $sql = "SELECT u.*, r.name as role_name 
-                FROM users u 
-                JOIN roles r ON u.role_id = r.id 
-                ORDER BY u.created_at DESC";
-        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
+        $stmt->execute(['email' => $email]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    /**
+     * Werkt het profiel van de gebruiker bij in de database.
+     * Als passwordHash null is, wordt het wachtwoord niet gewijzigd.
+     */
+    public function updateProfile(int $id, string $email, string $name, ?string $passwordHash = null): bool
+    {
+        if ($passwordHash) {
+            $sql = "UPDATE users SET email = :email, name = :name, password_hash = :password_hash WHERE id = :id";
+            $params = [
+                'email' => $email,
+                'name' => $name,
+                'password_hash' => $passwordHash,
+                'id' => $id
+            ];
+        } else {
+            $sql = "UPDATE users SET email = :email, name = :name WHERE id = :id";
+            $params = [
+                'email' => $email,
+                'name' => $name,
+                'id' => $id
+            ];
+        }
+
+        try {
+            return $this->pdo->prepare($sql)->execute($params);
+        } catch (\PDOException $e) {
+            // Log de fout indien nodig
+            return false;
+        }
     }
 }

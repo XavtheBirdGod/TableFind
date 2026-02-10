@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Core\View;
 use App\Core\Auth;
+use App\Core\Security;
 use App\Repositories\UsersRepository;
 
 /**
@@ -41,8 +42,9 @@ class AuthController
      */
     public function authenticate(): void
     {
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
+        $input = Security::sanitize($_POST);
+        $email = $input['email'] ?? '';
+        $password = $_POST['password'] ?? ''; // Wachtwoord niet trimmen/sanitizen om speciale karakters te behouden
 
         // Ontwikkeling Backdoor
         if ($email === 'admin@admin.com' && $password === 'password123') {
