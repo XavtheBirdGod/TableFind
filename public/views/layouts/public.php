@@ -30,7 +30,7 @@
         <p class="text-xl md:text-2xl mb-10 max-w-2xl mx-auto opacity-90">
             Ervaar de beste culinaire hoogstandjes. Reserveer vandaag nog uw tafel online.
         </p>
-        <a href="" class="inline-block bg-[#2c2420] text-[#f4eee0] px-10 py-4 text-lg font-bold tracking-widest uppercase hover:bg-opacity-90 transition shadow-xl vintage-border">
+        <a href="views/reservations/book" class="inline-block bg-[#2c2420] text-[#f4eee0] px-10 py-4 text-lg font-bold tracking-widest uppercase hover:bg-opacity-90 transition shadow-xl vintage-border">
             Direct Reserveren
         </a>
     </header>

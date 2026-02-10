@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 // 1. Laad de autoloader
 require_once __DIR__ . '/../app/autoload.php';
+include __DIR__ . '/views/home.php';
 
 session_start();
 
