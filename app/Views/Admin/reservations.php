@@ -42,6 +42,7 @@
                         <td>
                             <a href="/admin/reservations/edit/<?= $res['id'] ?>" class="btn btn-sm btn-primary">Bewerken</a>
                             <form action="/admin/reservations/delete/<?= $res['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Weet u het zeker?');">
+                                <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                                 <button type="submit" class="btn btn-sm btn-danger">Wis</button>
                             </form>
                         </td>

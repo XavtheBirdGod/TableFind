@@ -16,6 +16,7 @@
     </div>
     <div class="card-body">
         <form action="/admin/profile" method="POST">
+            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
             <div class="mb-3">
                 <label for="name" class="form-label">Volledige Naam</label>
                 <input type="text" class="form-control" id="name" name="name" 

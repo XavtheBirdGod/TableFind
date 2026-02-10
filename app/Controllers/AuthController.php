@@ -43,6 +43,13 @@ class AuthController
     public function authenticate(): void
     {
         $input = Security::sanitize($_POST);
+        
+        if (!Security::validateCsrfToken($input['csrf_token'] ?? '')) {
+            $_SESSION['flash'] = ['message' => 'Ongeldige sessie (CSRF).', 'type' => 'danger'];
+            header('Location: /login');
+            exit;
+        }
+
         $email = $input['email'] ?? '';
         $password = $_POST['password'] ?? ''; // Wachtwoord niet trimmen/sanitizen om speciale karakters te behouden
 

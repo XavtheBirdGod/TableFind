@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Core\Flash;
 use App\Core\View;
 use App\Core\Auth;
+use App\Core\Security;
 use App\Repositories\ReservationsRepository;
 use App\Repositories\TablesRepository;
 
@@ -83,15 +84,43 @@ final class ReservationsController
      */
     public function update(int $id): void
     {
+        if (!Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+            Flash::set('Ongeldige sessie (CSRF).', 'danger');
+            header('Location: /admin/reservations/edit/' . $id);
+            exit;
+        }
+
+        // Validatie
+        $errors = [];
+        if (empty($_POST['customer_name'])) $errors[] = 'Klantnaam is verplicht.';
+        if (empty($_POST['customer_phone'])) $errors[] = 'Telefoonnummer is verplicht.';
+        if (!empty($_POST['customer_email']) && !filter_var($_POST['customer_email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Ongeldig e-mailadres.';
+        }
+        if ((int)($_POST['guest_count'] ?? 0) < 1) $errors[] = 'Aantal gasten moet minimaal 1 zijn.';
+        if (empty($_POST['reservation_date'])) $errors[] = 'Datum is verplicht.';
+        if (empty($_POST['reservation_time'])) $errors[] = 'Tijd is verplicht.';
+        
+        $status = $_POST['status'] ?? 'pending';
+        if (!in_array($status, ['pending', 'confirmed', 'cancelled', 'completed'])) {
+            $errors[] = 'Ongeldige status.';
+        }
+
+        if (!empty($errors)) {
+            Flash::set(implode('<br>', $errors), 'danger');
+            header('Location: /admin/reservations/edit/' . $id);
+            exit;
+        }
+
         $data = [
-            'customer_name'    => $_POST['customer_name'] ?? '',
+            'customer_name'    => $_POST['customer_name'],
             'customer_email'   => $_POST['customer_email'] ?? '',
-            'customer_phone'   => $_POST['customer_phone'] ?? '',
-            'guest_count'      => (int)($_POST['guest_count'] ?? 1),
-            'reservation_date' => $_POST['reservation_date'] ?? '',
-            'reservation_time' => $_POST['reservation_time'] ?? '',
+            'customer_phone'   => $_POST['customer_phone'],
+            'guest_count'      => (int)$_POST['guest_count'],
+            'reservation_date' => $_POST['reservation_date'],
+            'reservation_time' => $_POST['reservation_time'],
             'table_id'         => !empty($_POST['table_id']) ? (int)$_POST['table_id'] : null,
-            'status'           => $_POST['status'] ?? 'pending',
+            'status'           => $status,
             'notes'            => $_POST['notes'] ?? ''
         ];
 
@@ -110,6 +139,12 @@ final class ReservationsController
      */
     public function destroy(int $id): void
     {
+        if (!Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+            Flash::set('Ongeldige sessie (CSRF).', 'danger');
+            header('Location: /admin/reservations');
+            exit;
+        }
+
         if ($this->reservations->delete($id)) {
             Flash::set('Reservering succesvol verwijderd.', 'success');
         } else {
@@ -135,12 +170,32 @@ final class ReservationsController
      */
     public function publicStore(): void
     {
+        if (!Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+            Flash::set('Ongeldige sessie (CSRF).', 'danger');
+            header('Location: /book');
+            exit;
+        }
+
+        // Validatie
+        $errors = [];
+        if (empty($_POST['customer_name'])) $errors[] = 'Naam is verplicht.';
+        if (empty($_POST['customer_phone'])) $errors[] = 'Telefoonnummer is verplicht.';
+        if ((int)($_POST['guest_count'] ?? 0) < 1) $errors[] = 'Aantal personen moet minimaal 1 zijn.';
+        if (empty($_POST['reservation_date'])) $errors[] = 'Datum is verplicht.';
+        if (empty($_POST['reservation_time'])) $errors[] = 'Tijd is verplicht.';
+
+        if (!empty($errors)) {
+            Flash::set(implode('<br>', $errors), 'danger');
+            header('Location: /book');
+            exit;
+        }
+
         $result = $this->reservations->create([
-            'customer_name'    => $_POST['customer_name'] ?? '',
-            'customer_phone'   => $_POST['customer_phone'] ?? '',
-            'guest_count'      => (int)($_POST['guest_count'] ?? 1),
-            'reservation_date' => $_POST['reservation_date'] ?? date('Y-m-d'),
-            'reservation_time' => $_POST['reservation_time'] ?? '18:00',
+            'customer_name'    => $_POST['customer_name'],
+            'customer_phone'   => $_POST['customer_phone'],
+            'guest_count'      => (int)$_POST['guest_count'],
+            'reservation_date' => $_POST['reservation_date'],
+            'reservation_time' => $_POST['reservation_time'],
             'status'           => 'pending'
         ]);
 

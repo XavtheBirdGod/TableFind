@@ -4,6 +4,7 @@
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
             <form action="/admin/reservations/update/<?= $res['id'] ?>" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Klantnaam</label>

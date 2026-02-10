@@ -17,6 +17,7 @@
 <div class="card shadow">
     <div class="card-body">
         <form action="/admin/tables/update/<?= \App\Core\Security::escape((string)$table['id']) ?>" method="POST">
+            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="table_number" class="form-label">Tafelnummer</label>

@@ -10,6 +10,7 @@
     <h2 class="text-3xl font-bold mb-6 italic text-[#2C2420]">Reserveer uw Tafel</h2>
 
     <form action="/reservations/public-store" method="POST" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
         <div>
             <label class="block font-bold">Naam *</label>
             <input type="text" name="customer_name" required class="w-full border border-gray-300 p-2 rounded">

@@ -57,10 +57,38 @@ class TablesController
     public function store(): void
     {
         $input = Security::sanitize($_POST);
+
+        if (!Security::validateCsrfToken($input['csrf_token'] ?? '')) {
+            Flash::set('Ongeldige sessie (CSRF).', 'danger');
+            header('Location: /admin/tables/create');
+            exit;
+        }
+
+        $tableNumber = trim($input['table_number'] ?? '');
+        $capacity = (int)($input['capacity'] ?? 0);
+        $status = $input['status'] ?? 'available';
+
+        $errors = [];
+        if (empty($tableNumber)) {
+            $errors[] = 'Tafelnummer is verplicht.';
+        }
+        if ($capacity < 1) {
+            $errors[] = 'Capaciteit moet minimaal 1 zijn.';
+        }
+        if (!in_array($status, ['available', 'occupied', 'out_of_order'])) {
+             $errors[] = 'Ongeldige status.';
+        }
+
+        if (!empty($errors)) {
+            Flash::set(implode('<br>', $errors), 'danger');
+            header('Location: /admin/tables/create');
+            exit;
+        }
+
         $data = [
-            'table_number' => $input['table_number'] ?? '',
-            'capacity'     => (int)($input['capacity'] ?? 2),
-            'status'       => $input['status'] ?? 'available'
+            'table_number' => $tableNumber,
+            'capacity'     => $capacity,
+            'status'       => $status
         ];
 
         if ($this->tablesRepository->create($data)) {
@@ -97,10 +125,38 @@ class TablesController
     public function update(int $id): void
     {
         $input = Security::sanitize($_POST);
+
+        if (!Security::validateCsrfToken($input['csrf_token'] ?? '')) {
+            Flash::set('Ongeldige sessie (CSRF).', 'danger');
+            header('Location: /admin/tables/edit/' . $id);
+            exit;
+        }
+
+        $tableNumber = trim($input['table_number'] ?? '');
+        $capacity = (int)($input['capacity'] ?? 0);
+        $status = $input['status'] ?? 'available';
+
+        $errors = [];
+        if (empty($tableNumber)) {
+            $errors[] = 'Tafelnummer is verplicht.';
+        }
+        if ($capacity < 1) {
+            $errors[] = 'Capaciteit moet minimaal 1 zijn.';
+        }
+        if (!in_array($status, ['available', 'occupied', 'out_of_order'])) {
+             $errors[] = 'Ongeldige status.';
+        }
+
+        if (!empty($errors)) {
+            Flash::set(implode('<br>', $errors), 'danger');
+            header('Location: /admin/tables/edit/' . $id);
+            exit;
+        }
+
         $data = [
-            'table_number' => $input['table_number'] ?? '',
-            'capacity'     => (int)($input['capacity'] ?? 2),
-            'status'       => $input['status'] ?? 'available'
+            'table_number' => $tableNumber,
+            'capacity'     => $capacity,
+            'status'       => $status
         ];
 
         if ($this->tablesRepository->update($id, $data)) {
@@ -118,6 +174,12 @@ class TablesController
      */
     public function destroy(int $id): void
     {
+        if (!Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+            Flash::set('Ongeldige sessie (CSRF).', 'danger');
+            header('Location: /admin/tables');
+            exit;
+        }
+
         if ($this->tablesRepository->delete($id)) {
             Flash::set('Tafel succesvol verwijderd.', 'success');
         } else {

@@ -8,5 +8,5 @@ declare(strict_types=1);
  * In onze vhost setup:
  * https://minicms.test/admin
  */
-define('ADMIN_BASE_PATH', '/admin');
+define('ADMIN_BASE_PATH', '/login');
 

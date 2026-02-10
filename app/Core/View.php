@@ -15,6 +15,10 @@ class View
     public static function render(string $view, array $data = []): void
     {
         // Variabelen uitpakken zodat ze direct beschikbaar zijn in alle componenten
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $data['csrf_token'] = Security::generateCsrfToken();
         extract($data);
 
         $viewPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $view);
