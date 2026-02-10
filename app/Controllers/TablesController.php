@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Core\View;
 use App\Core\Auth;
 use App\Core\Flash;
+use App\Core\Security;
 use App\Repositories\TablesRepository;
 
 /**
@@ -55,10 +56,11 @@ class TablesController
      */
     public function store(): void
     {
+        $input = Security::sanitize($_POST);
         $data = [
-            'table_number' => $_POST['table_number'] ?? '',
-            'capacity'     => (int)($_POST['capacity'] ?? 2),
-            'status'       => $_POST['status'] ?? 'available'
+            'table_number' => $input['table_number'] ?? '',
+            'capacity'     => (int)($input['capacity'] ?? 2),
+            'status'       => $input['status'] ?? 'available'
         ];
 
         if ($this->tablesRepository->create($data)) {
@@ -94,10 +96,11 @@ class TablesController
      */
     public function update(int $id): void
     {
+        $input = Security::sanitize($_POST);
         $data = [
-            'table_number' => $_POST['table_number'] ?? '',
-            'capacity'     => (int)($_POST['capacity'] ?? 2),
-            'status'       => $_POST['status'] ?? 'available'
+            'table_number' => $input['table_number'] ?? '',
+            'capacity'     => (int)($input['capacity'] ?? 2),
+            'status'       => $input['status'] ?? 'available'
         ];
 
         if ($this->tablesRepository->update($id, $data)) {
