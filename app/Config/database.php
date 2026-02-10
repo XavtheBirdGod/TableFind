@@ -5,6 +5,6 @@ return [
     'host' => '127.0.0.1:3306',
     'dbname' => 'tabelreservation',
     'user' => 'root',
-    'pass' => 'root',
+    'pass' => '',
     'charset' => 'utf8mb4',
 ];
