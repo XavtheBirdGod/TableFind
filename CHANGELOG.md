@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Backend, repositories, controller, login, etc — Jihad
 - Changes to style, minor bug fixes to admin side — Xanthe
 - Success button and fixing to frontend in book form — Xanthe
+- Set up md files — Xanthe / filling in md files — Jihad
 
 
 Feel free to change anything you want Jihad, 
