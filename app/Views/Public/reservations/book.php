@@ -6,7 +6,7 @@
     <title>Tafel Reserveren</title>
 </head>
 <body class="bg-[#F4EEE0] p-10">
-<div class="max-w-lg mx-auto bg-white p-8 rounded shadow-lg border-2 border-[#2C2420]">
+<div class="max-w-lg mx-auto bg-white p-8 rounded shadow-lg border-2 border-[#2C2420] m-10">
     <h2 class="text-3xl font-bold mb-6 italic text-[#2C2420]">Reserveer uw Tafel</h2>
 
     <form action="/reservations/public-store" method="POST" class="space-y-4">
