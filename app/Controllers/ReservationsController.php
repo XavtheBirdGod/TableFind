@@ -140,7 +140,16 @@ final class ReservationsController
             Flash::set('Uw reservering is succesvol geplaatst!', 'success');
         }
 
-        header('Location: /');
+        header('Location: /success');
         exit;
+    }
+    /**
+     * Toont de succes-pagina na een geslaagde reservering.
+     */
+    public function success(): void
+    {
+        View::render('Public/reservations/reservation-success', [
+            'title' => 'Reservering Bevestigd'
+        ]);
     }
 }
