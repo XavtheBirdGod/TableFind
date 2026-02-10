@@ -4,70 +4,57 @@ declare(strict_types=1);
 namespace App\Core;
 
 /**
- * Router Class - Multi-platform compatible.
- * Verantwoordelijk voor het matchen van de URI aan de juiste controller actie.
+ * Router Class
+ * Verantwoordelijk voor het routeren van verzoeken naar de juiste controllers.
  */
-class Router
+final class Router
 {
     private array $routes = [];
 
-    public function get(string $path, callable|array $handler): void
+    /**
+     * Voegt een route toe.
+     */
+    public function add(string $method, string $path, string $handler): void
     {
-        $this->addRoute('GET', $path, $handler);
-    }
-
-    public function post(string $path, callable|array $handler): void
-    {
-        $this->addRoute('POST', $path, $handler);
-    }
-
-    private function addRoute(string $method, string $path, callable|array $handler): void
-    {
-        $this->routes[$method][] = [
-            'path' => '/' . ltrim($path, '/'),
+        // Zet parameters zoals {id} om naar regex
+        $pattern = preg_replace('/\{id\}/', '(\d+)', $path);
+        
+        $this->routes[] = [
+            'method'  => strtoupper($method),
+            'path'    => "#^" . $pattern . "$#",
             'handler' => $handler
         ];
     }
 
     /**
-     * Verwerkt de inkomende aanvraag en voert de controller uit.
+     * Analyseert de URI en voert de bijbehorende controller uit.
      */
     public function dispatch(string $uri, string $method): void
     {
-        // 1. Verwijder query strings (?id=1)
-        $uri = strtok($uri, '?');
+        // Verwijder query parameters voor matching
+        $path = parse_url($uri, PHP_URL_PATH);
+        $method = strtoupper($method);
 
-        // 2. Cross-platform Base Path detectie
-        // Hiermee werkt /tablefind/public/book hetzelfde als /book
-        $scriptName = $_SERVER['SCRIPT_NAME']; 
-        $basePath = str_replace('/index.php', '', $scriptName);
-        
-        if (strpos($uri, $basePath) === 0) {
-            $uri = substr($uri, strlen($basePath));
-        }
-
-        // Normaliseer de URI
-        $uri = '/' . ltrim($uri, '/');
-
-        foreach ($this->routes[$method] ?? [] as $route) {
-            if ($route['path'] === $uri) {
-                $handler = $route['handler'];
+        foreach ($this->routes as $route) {
+            if ($route['method'] === $method && preg_match($route['path'], $path, $matches)) {
+                array_shift($matches); 
                 
-                if (is_array($handler)) {
-                    [$controllerClass, $methodName] = $handler;
-                    // Maak een instantie van de controller
+                [$controllerName, $action] = explode('@', $route['handler']);
+                $controllerClass = "App\\Controllers\\" . $controllerName;
+
+                if (class_exists($controllerClass)) {
                     $controller = new $controllerClass();
-                    $controller->$methodName();
-                } else {
-                    $handler();
+                    if (method_exists($controller, $action)) {
+                        call_user_func_array([$controller, $action], $matches);
+                        return;
+                    }
                 }
-                return;
             }
         }
 
-        // Fallback als route niet bestaat
+        // Als er geen match is, toon 404
         http_response_code(404);
         echo "<h1>404 - Pagina niet gevonden</h1>";
-        echo "<p>Route <strong>$uri</strong> is niet gedefinieerd.</p>";
+        echo "<p>De opgevraagde route <strong>" . htmlspecialchars($path) . "</strong> is niet geconfigureerd.</p>";
     }
 }

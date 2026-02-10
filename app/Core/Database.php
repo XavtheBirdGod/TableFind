@@ -6,15 +6,18 @@ namespace App\Core;
 use PDO;
 use PDOException;
 
+/**
+ * Database Class
+ * Beheert de PDO-verbinding met de database via het Singleton-patroon.
+ */
 class Database
 {
     private static ?PDO $pdo = null;
 
     /**
-     * getConnection()
-     *
-     * Doel:
-     * Geeft één PDO connectie terug die overal hergebruikt wordt.
+     * Retourneert een gedeelde PDO-instantie.
+     * Initialiseert de verbinding als deze nog niet bestaat.
+     * * @return PDO
      */
     public static function getConnection(): PDO
     {
@@ -24,9 +27,11 @@ class Database
 
         $config = require __DIR__ . '/../Config/database.php';
 
+        // Verbeterde DSN string met expliciete poort configuratie
         $dsn = sprintf(
-            'mysql:host=%s;dbname=%s;charset=%s',
+            'mysql:host=%s;port=%s;dbname=%s;charset=%s',
             $config['host'],
+            $config['port'] ?? '3306',
             $config['dbname'],
             $config['charset']
         );
@@ -39,11 +44,14 @@ class Database
                 [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
                 ]
             );
         } catch (PDOException $e) {
+            // Log de fout en stop de uitvoering bij een databasefout
             http_response_code(500);
-            echo $e . '<h1>500 - Database connectie mislukt</h1>';
+            error_log("Database verbinding mislukt: " . $e->getMessage());
+            echo '<h1>500 - Interne serverfout: Databaseverbinding mislukt</h1>';
             exit;
         }
 
