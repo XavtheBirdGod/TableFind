@@ -17,11 +17,6 @@
                     <i class="fas fa-chair me-2"></i> Tafels
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/users">
-                    <i class="fas fa-users me-2"></i> Gebruikers
-                </a>
-            </li>
             <hr class="text-secondary">
             <li class="nav-item">
                 <a class="nav-link text-danger" href="/logout">

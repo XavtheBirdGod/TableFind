@@ -1,4 +1,3 @@
-<?php include 'includes/header.php'; ?>
 <div class="container-fluid">
     <h1 class="mt-4">Reservering #<?= $res['id'] ?> Aanpassen</h1>
     

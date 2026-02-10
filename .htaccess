@@ -1,25 +1,5 @@
-# Gebruik UTF-8 codering voor alle tekstbestanden
-AddDefaultCharset UTF-8
+# Gebruik Apache Rewrite Engine om alle verzoeken naar de public map te sturen
+RewriteEngine On
 
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # Voorkom dat Apache probeert te zoeken naar mappen die niet bestaan
-    Options -Indexes
-
-    # Zorg ervoor dat requests die naar een bestaand bestand of map gaan, niet worden herschreven
-    # Dit is essentieel voor CSS, JS en afbeeldingen in de public map
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-
-    # Stuur alle andere verzoeken door naar public/index.php
-    # De [L] flag stopt de uitvoering van verdere regels
-    # De [QSA] zorgt ervoor dat query strings (zoals ?id=1) behouden blijven
-    RewriteRule ^(.*)$ public/index.php [L,QSA]
-</IfModule>
-
-# Beveiliging: Voorkom toegang tot gevoelige bestanden
-<FilesMatch "^\.env|composer\.json|setup_db\.php">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
+# Stuur alles door naar de public/index.php
+RewriteRule ^(.*)$ public/index.php [QSA,L]
