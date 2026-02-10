@@ -12,7 +12,6 @@ use App\Repositories\TablesRepository;
 /**
  * ReservationsController
  * Beheert de reserveringsflow voor zowel klanten als beheerders.
- * Dit omvat het bekijken, bewerken, bijwerken en verwijderen van reserveringen.
  */
 final class ReservationsController
 {
@@ -21,7 +20,6 @@ final class ReservationsController
 
     /**
      * Constructor initialiseert de repositories en controleert de toegang.
-     * Hier wordt gecontroleerd of de gebruiker geautoriseerd is voor admin-routes.
      */
     public function __construct()
     {
@@ -39,6 +37,17 @@ final class ReservationsController
     }
 
     /**
+     * Toont de hoofdpagina van de website (Landing Page).
+     * FIX: Gebruikt nu de juiste View class en laadt niet langer automatisch de booking page.
+     */
+    public function home(): void
+    {
+        View::render('Public/home', [
+            'title' => 'Welkom bij TableFind'
+        ]);
+    }
+
+    /**
      * Toont alle reserveringen in het administratiepaneel.
      */
     public function index(): void
@@ -51,7 +60,7 @@ final class ReservationsController
     }
 
     /**
-     * Toont het bewerkingsformulier voor een specifieke reservering op basis van ID.
+     * Toont het bewerkingsformulier voor een specifieke reservering.
      */
     public function edit(int $id): void
     {
@@ -65,7 +74,7 @@ final class ReservationsController
         View::render('Admin/reservation-edit', [
             'title' => 'Reservering Bewerken',
             'res' => $reservation,
-            'tables' => $this->tables->getAll() // Nodig voor de tafel selectiebox
+            'tables' => $this->tables->getAll()
         ]);
     }
 
@@ -86,7 +95,6 @@ final class ReservationsController
             'notes'            => $_POST['notes'] ?? ''
         ];
 
-        // Voer de update uit via de repository
         if ($this->reservations->update($id, $data)) {
             Flash::set('Reservering succesvol bijgewerkt.', 'success');
         } else {
@@ -98,7 +106,7 @@ final class ReservationsController
     }
 
     /**
-     * Verwijdert een reservering uit het systeem.
+     * Verwijdert een reservering.
      */
     public function destroy(int $id): void
     {
@@ -107,13 +115,13 @@ final class ReservationsController
         } else {
             Flash::set('Fout bij het verwijderen van de reservering.', 'danger');
         }
-        
+
         header('Location: /admin/reservations');
         exit;
     }
 
     /**
-     * Toont het reserveringsformulier aan de publieke zijde voor gasten.
+     * Toont het reserveringsformulier voor gasten.
      */
     public function book(): void
     {
@@ -123,7 +131,7 @@ final class ReservationsController
     }
 
     /**
-     * Verwerkt een nieuwe reservering geplaatst door een externe klant.
+     * Verwerkt een nieuwe publieke reservering.
      */
     public function publicStore(): void
     {
@@ -140,7 +148,17 @@ final class ReservationsController
             Flash::set('Uw reservering is succesvol geplaatst!', 'success');
         }
 
-        header('Location: /');
+        header('Location: /success');
         exit;
+    }
+
+    /**
+     * Toont de succes-pagina.
+     */
+    public function success(): void
+    {
+        View::render('Public/reservations/reservation-success', [
+            'title' => 'Reservering Bevestigd'
+        ]);
     }
 }

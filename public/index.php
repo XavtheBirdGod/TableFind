@@ -39,9 +39,11 @@ $router->add('GET',  '/logout',     'AuthController@logout');
 /**
  * --- PUBLIEKE ROUTES ---
  */
-$router->add('GET',  '/',                          'ReservationsController@book');
+
+$router->add('GET',  '/',                          'ReservationsController@home');
 $router->add('GET',  '/book',                      'ReservationsController@book');
 $router->add('POST', '/reservations/public-store', 'ReservationsController@publicStore');
+$router->add('GET',  '/success',                   'ReservationsController@success');
 
 /**
  * --- ADMIN ROUTES ---
