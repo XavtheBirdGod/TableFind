@@ -59,6 +59,12 @@ class UsersController
     {
         $userId = (int)($_SESSION['user_id'] ?? 0);
 
+        if (!Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+            Flash::set('Ongeldige sessie (CSRF).', 'danger');
+            header('Location: /admin/profile');
+            exit;
+        }
+
         // Beveiliging: Dev account mag niet worden gewijzigd
         if ($userId === 999) {
             Flash::set('Het ontwikkelaccount kan niet worden gewijzigd.', 'warning');
@@ -66,12 +72,18 @@ class UsersController
             exit;
         }
 
-        $name  = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_SPECIAL_CHARS);
-        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+        $name  = trim(filter_input(INPUT_POST, 'name', FILTER_SANITIZE_SPECIAL_CHARS) ?? '');
+        $email = trim(filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL) ?? '');
         $pass  = $_POST['password'] ?? '';
 
-        if (!$name || !$email) {
+        if (empty($name) || empty($email)) {
             Flash::set('Naam en e-mailadres zijn verplicht.', 'danger');
+            header('Location: /admin/profile');
+            exit;
+        }
+        
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Flash::set('Ongeldig e-mailadres.', 'danger');
             header('Location: /admin/profile');
             exit;
         }

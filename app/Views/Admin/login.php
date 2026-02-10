@@ -16,6 +16,7 @@
             <div class="alert alert-danger"><?= $_SESSION['flash']['message']; unset($_SESSION['flash']); ?></div>
         <?php endif; ?>
         <form action="/login/auth" method="POST">
+            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
             <div class="mb-3">
                 <label class="form-label">E-mailadres</label>
                 <input type="email" name="email" class="form-control" required placeholder="admin@example.com">

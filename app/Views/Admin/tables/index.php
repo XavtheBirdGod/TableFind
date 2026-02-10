@@ -53,6 +53,7 @@
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <form action="/admin/tables/delete/<?= $table['id'] ?>" method="POST" class="d-inline" onsubmit="return confirm('Weet u zeker dat u deze tafel wilt verwijderen?');">
+                                            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                 <i class="fas fa-trash"></i>
                                             </button>
