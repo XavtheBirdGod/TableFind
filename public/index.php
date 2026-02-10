@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 // 1. Laad de autoloader als eerste!
 require_once __DIR__ . '/../app/autoload.php';
-include __DIR__ . '/views/home.php';
 
 
 // 2. Gebruik de juiste namespaces

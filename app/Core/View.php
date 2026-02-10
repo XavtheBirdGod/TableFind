@@ -28,7 +28,7 @@ class View
 
         // Bepaal de lay-out (Admin of Public)
         $layoutType = str_contains($view, 'Admin') ? 'admin' : 'public';
-        
+
         // Start output buffering om de content op te vangen
         ob_start();
         require $viewFile;
@@ -36,7 +36,7 @@ class View
 
         // Laad de gekozen lay-out en injecteer de $content
         $layoutPath = __DIR__ . "/../Views/Public/layouts/{$layoutType}.php";
-        
+
         if (file_exists($layoutPath)) {
             require $layoutPath;
         } else {
