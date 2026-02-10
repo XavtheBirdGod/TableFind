@@ -1,26 +1,34 @@
 <?php
 declare(strict_types=1);
 
-// 1. Laad de autoloader als eerste!
+// Foutrapportage aan voor debugging
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../app/autoload.php';
 
+session_start();
 
-// 2. Gebruik de juiste namespaces
 use App\Core\Router;
 use App\Controllers\ReservationsController;
 
 $router = new Router();
 
-// --- Routes ---
+// --- PUBLIEKE ROUTES ---
+
+// Homepagina via een anonieme functie die de View class gebruikt
 $router->get('/', function() {
-    require __DIR__ . '/../app/Views/Public/home.php';
+    App\Core\View::render('Public/home', ['title' => 'TableFind | Welkom']);
 });
 
-// De route voor de reserveringspagina (gekoppeld aan de knop)
-$router->get('/book', [new ReservationsController(), 'book']);
+// Reserveringspagina
+$router->get('/book', [ReservationsController::class, 'book']);
 
-// De route voor het opslaan van de reservering
-$router->post('/reservations/public-store', [new ReservationsController(), 'publicStore']);
+// Verwerken van reservering
+$router->post('/reservations/public-store', [ReservationsController::class, 'publicStore']);
 
-// 3. Dispatch
+// --- ADMIN ROUTES ---
+$router->get('/admin/reservations', [ReservationsController::class, 'index']);
+
+// Dispatch de URI
 $router->dispatch($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
