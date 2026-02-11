@@ -13,6 +13,7 @@ use App\Repositories\TablesRepository;
 /**
  * ReservationsController
  * Beheert de reserveringsflow voor zowel klanten als beheerders.
+ * Deze controller zorgt voor de validatie en interactie tussen de views en repositories.
  */
 final class ReservationsController
 {
@@ -20,11 +21,11 @@ final class ReservationsController
     private TablesRepository $tables;
 
     /**
-     * Constructor initialiseert de repositories en controleert de toegang.
+     * Constructor initialiseert de benodigde repositories en controleert de toegangsrechten.
      */
     public function __construct()
     {
-        // Beveiliging: Alleen toegankelijk voor admins in het admin-gedeelte
+        // Beveiliging: Controleer of de gebruiker admin-rechten heeft voor admin-routes
         if (str_contains($_SERVER['REQUEST_URI'], '/admin')) {
             if (!Auth::isAdmin()) {
                 Flash::set('Toegang geweigerd. U moet ingelogd zijn als admin.', 'danger');
@@ -33,13 +34,15 @@ final class ReservationsController
             }
         }
 
+        /**
+         * Initialisatie van repositories via de static factory methode.
+         */
         $this->reservations = ReservationsRepository::make();
         $this->tables = TablesRepository::make();
     }
 
     /**
-     * Toont de hoofdpagina van de website (Landing Page).
-     * FIX: Gebruikt nu de juiste View class en laadt niet langer automatisch de booking page.
+     * Toont de hoofdpagina van de website.
      */
     public function home(): void
     {
@@ -53,6 +56,7 @@ final class ReservationsController
      */
     public function index(): void
     {
+        // Haal alle reserveringen op via de repository
         $data = $this->reservations->getAll();
         View::render('Admin/reservations', [
             'title' => 'Reserveringen Beheren',
@@ -61,7 +65,8 @@ final class ReservationsController
     }
 
     /**
-     * Toont het bewerkingsformulier voor een specifieke reservering.
+     * Toont het formulier om een bestaande reservering te bewerken.
+     * FIX: Gebruikt nu de juiste methode van TablesRepository.
      */
     public function edit(int $id): void
     {
@@ -72,25 +77,30 @@ final class ReservationsController
             exit;
         }
 
+        /**
+         * We halen alle tafels op om ze weer te geven in de dropdown voor toewijzing.
+         * De methode 'getAll' moet aanwezig zijn in TablesRepository.
+         */
         View::render('Admin/reservation-edit', [
-            'title' => 'Reservering Bewerken',
-            'res' => $reservation,
-            'tables' => $this->tables->getAll()
+            'title'   => 'Reservering Bewerken',
+            'res'     => $reservation,
+            'tables'  => $this->tables->getAll() 
         ]);
     }
 
     /**
-     * Verwerkt de update van een bestaande reservering.
+     * Verwerkt de update van een bestaande reservering na validatie.
      */
     public function update(int $id): void
     {
+        // CSRF-beveiliging validatie
         if (!Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
             Flash::set('Ongeldige sessie (CSRF).', 'danger');
             header('Location: /admin/reservations/edit/' . $id);
             exit;
         }
 
-        // Validatie
+        // Validatie van de invoervelden
         $errors = [];
         if (empty($_POST['customer_name'])) $errors[] = 'Klantnaam is verplicht.';
         if (empty($_POST['customer_phone'])) $errors[] = 'Telefoonnummer is verplicht.';
@@ -106,12 +116,14 @@ final class ReservationsController
             $errors[] = 'Ongeldige status.';
         }
 
+        // Als er fouten zijn, stuur de gebruiker terug met een foutmelding
         if (!empty($errors)) {
             Flash::set(implode('<br>', $errors), 'danger');
             header('Location: /admin/reservations/edit/' . $id);
             exit;
         }
 
+        // Voorbereiden van data voor de repository
         $data = [
             'customer_name'    => $_POST['customer_name'],
             'customer_email'   => $_POST['customer_email'] ?? '',
@@ -124,6 +136,7 @@ final class ReservationsController
             'notes'            => $_POST['notes'] ?? ''
         ];
 
+        // Voer de update uit en geef feedback aan de gebruiker
         if ($this->reservations->update($id, $data)) {
             Flash::set('Reservering succesvol bijgewerkt.', 'success');
         } else {
@@ -135,7 +148,7 @@ final class ReservationsController
     }
 
     /**
-     * Verwijdert een reservering.
+     * Verwijdert een reservering uit het systeem.
      */
     public function destroy(int $id): void
     {
@@ -156,7 +169,7 @@ final class ReservationsController
     }
 
     /**
-     * Toont het reserveringsformulier voor gasten.
+     * Toont het publieke reserveringsformulier voor gasten.
      */
     public function book(): void
     {
@@ -166,7 +179,7 @@ final class ReservationsController
     }
 
     /**
-     * Verwerkt een nieuwe publieke reservering.
+     * Verwerkt een nieuwe reservering geplaatst via de publieke website.
      */
     public function publicStore(): void
     {
@@ -176,7 +189,6 @@ final class ReservationsController
             exit;
         }
 
-        // Validatie
         $errors = [];
         if (empty($_POST['customer_name'])) $errors[] = 'Naam is verplicht.';
         if (empty($_POST['customer_phone'])) $errors[] = 'Telefoonnummer is verplicht.';
@@ -201,14 +213,16 @@ final class ReservationsController
 
         if ($result) {
             Flash::set('Uw reservering is succesvol geplaatst!', 'success');
+            header('Location: /success');
+        } else {
+            Flash::set('Er is iets misgegaan. Probeer het later opnieuw.', 'danger');
+            header('Location: /book');
         }
-
-        header('Location: /success');
         exit;
     }
 
     /**
-     * Toont de succes-pagina.
+     * Toont de succes-bevestigingspagina na een reservering.
      */
     public function success(): void
     {

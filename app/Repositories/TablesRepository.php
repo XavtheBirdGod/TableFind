@@ -8,7 +8,7 @@ use PDO;
 
 /**
  * TablesRepository
- * Beheert de database-operaties voor de restauranttafels.
+ * Beheert alle database-interacties voor de tafels.
  */
 final class TablesRepository
 {
@@ -24,30 +24,35 @@ final class TablesRepository
         return new self(Database::getConnection());
     }
 
+    public function all(): array
+    {
+        $stmt = $this->pdo->query("SELECT * FROM tables ORDER BY table_number ASC");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getAll(): array
     {
-        $sql = "SELECT * FROM tables ORDER BY table_number ASC";
-        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        return $this->all();
     }
 
     public function find(int $id): ?array
     {
-        $sql = "SELECT * FROM tables WHERE id = :id LIMIT 1";
-        $stmt = $this->pdo->prepare($sql);
+        $stmt = $this->pdo->prepare("SELECT * FROM tables WHERE id = :id LIMIT 1");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     /**
-     * Voegt een nieuwe tafel toe aan de database.
+     * Slaat een nieuwe tafel op in de database.
      */
     public function create(array $data): bool
     {
-        $sql = "INSERT INTO tables (table_number, capacity, status) VALUES (?, ?, ?)";
-        return $this->pdo->prepare($sql)->execute([
-            $data['table_number'],
-            $data['capacity'],
-            $data['status']
+        $sql = "INSERT INTO tables (table_number, capacity, status) VALUES (:table_number, :capacity, :status)";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([
+            'table_number' => $data['table_number'],
+            'capacity'     => $data['capacity'],
+            'status'       => $data['status'] ?? 'available'
         ]);
     }
 
@@ -56,21 +61,22 @@ final class TablesRepository
      */
     public function update(int $id, array $data): bool
     {
-        $sql = "UPDATE tables SET table_number = ?, capacity = ?, status = ?, updated_at = NOW() WHERE id = ?";
-        return $this->pdo->prepare($sql)->execute([
-            $data['table_number'],
-            $data['capacity'],
-            $data['status'],
-            $id
+        $sql = "UPDATE tables SET table_number = :table_number, capacity = :capacity, status = :status WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([
+            'table_number' => $data['table_number'],
+            'capacity'     => $data['capacity'],
+            'status'       => $data['status'],
+            'id'           => $id
         ]);
     }
 
     /**
-     * Verwijdert een tafel op basis van ID.
+     * Verwijdert een tafel.
      */
     public function delete(int $id): bool
     {
-        $sql = "DELETE FROM tables WHERE id = ?";
-        return $this->pdo->prepare($sql)->execute([$id]);
+        $stmt = $this->pdo->prepare("DELETE FROM tables WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
     }
 }

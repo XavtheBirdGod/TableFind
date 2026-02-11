@@ -4,14 +4,14 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\View;
-use App\Core\Auth;
 use App\Core\Flash;
 use App\Core\Security;
 use App\Repositories\TablesRepository;
 
 /**
  * TablesController
- * Beheert de configuratie en status van de restauranttafels.
+ * Beheert alle acties voor tafels in het administratiepaneel.
+ * Omvat het maken, bekijken, bewerken en verwijderen van tafels.
  */
 class TablesController
 {
@@ -19,173 +19,135 @@ class TablesController
 
     public function __construct()
     {
-        // Beveiliging: Alleen geautoriseerde admins kunnen tafels beheren
-        Auth::requireLogin();
-        if (!Auth::isAdmin()) {
-            Flash::set('Onvoldoende rechten. Alleen admins hebben toegang.', 'danger');
-            header('Location: /admin/dashboard');
-            exit;
-        }
+        /**
+         * Initialiseer de repository via de static factory methode.
+         */
         $this->tablesRepository = TablesRepository::make();
     }
 
     /**
-     * Toont het overzicht van alle beschikbare tafels.
+     * Toont de lijst met alle tafels.
      */
     public function index(): void
     {
-        $tables = $this->tablesRepository->getAll();
-        View::render('Admin/tables/index', [
-            'title'  => 'Tafelbeheer',
+        $tables = $this->tablesRepository->all();
+        View::render('Admin/Tables/index', [
+            'title' => 'Tafelbeheer',
             'tables' => $tables
         ]);
     }
 
     /**
      * Toont het formulier om een nieuwe tafel aan te maken.
+     * Gekoppeld aan GET /admin/tables/create
      */
     public function create(): void
     {
-        View::render('Admin/tables/create', [
+        View::render('Admin/Tables/create', [
             'title' => 'Nieuwe Tafel Toevoegen'
         ]);
     }
 
     /**
      * Verwerkt het opslaan van een nieuwe tafel.
+     * Gekoppeld aan POST /admin/tables/store
      */
     public function store(): void
     {
-        $input = Security::sanitize($_POST);
-
-        if (!Security::validateCsrfToken($input['csrf_token'] ?? '')) {
-            Flash::set('Ongeldige sessie (CSRF).', 'danger');
+        if (!Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+            $_SESSION['flash'] = ['message' => 'Ongeldige CSRF-token', 'type' => 'danger'];
             header('Location: /admin/tables/create');
             exit;
         }
 
-        $tableNumber = trim($input['table_number'] ?? '');
-        $capacity = (int)($input['capacity'] ?? 0);
+        $input = Security::sanitize($_POST);
+        $tableNumber = $input['table_number'] ?? '';
+        $capacity = (int)($input['capacity'] ?? 2);
         $status = $input['status'] ?? 'available';
 
-        $errors = [];
         if (empty($tableNumber)) {
-            $errors[] = 'Tafelnummer is verplicht.';
-        }
-        if ($capacity < 1) {
-            $errors[] = 'Capaciteit moet minimaal 1 zijn.';
-        }
-        if (!in_array($status, ['available', 'occupied', 'out_of_order'])) {
-             $errors[] = 'Ongeldige status.';
-        }
-
-        if (!empty($errors)) {
-            Flash::set(implode('<br>', $errors), 'danger');
+            $_SESSION['flash'] = ['message' => 'Tafelnummer is verplicht.', 'type' => 'warning'];
             header('Location: /admin/tables/create');
             exit;
         }
 
-        $data = [
+        // Voeg hier de logica toe om de tafel op te slaan via de repository
+        $this->tablesRepository->create([
             'table_number' => $tableNumber,
-            'capacity'     => $capacity,
-            'status'       => $status
-        ];
+            'capacity' => $capacity,
+            'status' => $status
+        ]);
 
-        if ($this->tablesRepository->create($data)) {
-            Flash::set('Tafel succesvol toegevoegd.', 'success');
-        } else {
-            Flash::set('Fout bij het toevoegen van de tafel.', 'danger');
-        }
-
+        $_SESSION['flash'] = ['message' => 'Tafel succesvol toegevoegd.', 'type' => 'success'];
         header('Location: /admin/tables');
         exit;
     }
 
     /**
-     * Toont het bewerkingsformulier voor een specifieke tafel.
+     * Toont het formulier om een bestaande tafel te bewerken.
+     * Gekoppeld aan GET /admin/tables/edit/{id}
      */
     public function edit(int $id): void
     {
         $table = $this->tablesRepository->find($id);
+        
         if (!$table) {
-            Flash::set('Tafel niet gevonden.', 'warning');
+            $_SESSION['flash'] = ['message' => 'Tafel niet gevonden.', 'type' => 'danger'];
             header('Location: /admin/tables');
             exit;
         }
 
-        View::render('Admin/tables/edit', [
+        View::render('Admin/Tables/edit', [
             'title' => 'Tafel Bewerken',
             'table' => $table
         ]);
     }
 
     /**
-     * Werkt de gegevens van een bestaande tafel bij.
+     * Verwerkt de update van een bestaande tafel.
+     * Gekoppeld aan POST /admin/tables/update/{id}
      */
     public function update(int $id): void
     {
+        if (!Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+            $_SESSION['flash'] = ['message' => 'Ongeldige CSRF-token', 'type' => 'danger'];
+            header('Location: /admin/tables/edit/' . $id);
+            exit;
+        }
+
         $input = Security::sanitize($_POST);
-
-        if (!Security::validateCsrfToken($input['csrf_token'] ?? '')) {
-            Flash::set('Ongeldige sessie (CSRF).', 'danger');
-            header('Location: /admin/tables/edit/' . $id);
-            exit;
-        }
-
-        $tableNumber = trim($input['table_number'] ?? '');
-        $capacity = (int)($input['capacity'] ?? 0);
+        $tableNumber = $input['table_number'] ?? '';
+        $capacity = (int)($input['capacity'] ?? 2);
         $status = $input['status'] ?? 'available';
-
-        $errors = [];
-        if (empty($tableNumber)) {
-            $errors[] = 'Tafelnummer is verplicht.';
-        }
-        if ($capacity < 1) {
-            $errors[] = 'Capaciteit moet minimaal 1 zijn.';
-        }
-        if (!in_array($status, ['available', 'occupied', 'out_of_order'])) {
-             $errors[] = 'Ongeldige status.';
-        }
-
-        if (!empty($errors)) {
-            Flash::set(implode('<br>', $errors), 'danger');
-            header('Location: /admin/tables/edit/' . $id);
-            exit;
-        }
-
-        $data = [
+        
+        // Logica voor het bijwerken van de tafel...
+        $this->tablesRepository->update($id, [
             'table_number' => $tableNumber,
-            'capacity'     => $capacity,
-            'status'       => $status
-        ];
+            'capacity' => $capacity,
+            'status' => $status
+        ]);
 
-        if ($this->tablesRepository->update($id, $data)) {
-            Flash::set('Tafel succesvol bijgewerkt.', 'success');
-        } else {
-            Flash::set('Er is een fout opgetreden bij de update.', 'danger');
-        }
-
+        $_SESSION['flash'] = ['message' => 'Tafel succesvol bijgewerkt.', 'type' => 'success'];
         header('Location: /admin/tables');
         exit;
     }
 
     /**
      * Verwijdert een tafel uit het systeem.
+     * Gekoppeld aan POST /admin/tables/delete/{id}
      */
     public function destroy(int $id): void
     {
         if (!Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
-            Flash::set('Ongeldige sessie (CSRF).', 'danger');
+            $_SESSION['flash'] = ['message' => 'Ongeldige CSRF-token', 'type' => 'danger'];
             header('Location: /admin/tables');
             exit;
         }
 
-        if ($this->tablesRepository->delete($id)) {
-            Flash::set('Tafel succesvol verwijderd.', 'success');
-        } else {
-            Flash::set('Fout bij het verwijderen van de tafel.', 'danger');
-        }
+        // Logica voor het verwijderen van de tafel...
+        $this->tablesRepository->delete($id);
 
+        $_SESSION['flash'] = ['message' => 'Tafel succesvol verwijderd.', 'type' => 'success'];
         header('Location: /admin/tables');
         exit;
     }

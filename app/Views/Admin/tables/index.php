@@ -1,72 +1,53 @@
-<?php
-/**
- * Overzichtspagina voor tafelbeheer.
- * Toont een lijst met alle tafels en hun status.
- */
-?>
-
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Tafelbeheer</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="/admin/tables/create" class="btn btn-sm btn-outline-primary">
-            <i class="fas fa-plus me-1"></i> Nieuwe Tafel Toevoegen
+<div class="container-fluid pt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Tafelbeheer</h2>
+        <a href="/admin/tables/create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nieuwe Tafel
         </a>
     </div>
-</div>
 
-<div class="card shadow">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
+    <?php if (isset($_SESSION['flash'])): ?>
+        <div class="alert alert-<?= $_SESSION['flash']['type']; ?> alert-dismissible fade show">
+            <?= $_SESSION['flash']['message']; ?>
+            <?php unset($_SESSION['flash']); ?>
+        </div>
+    <?php endif; ?>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Tafelnummer</th>
+                        <th>Tafel Nummer</th>
                         <th>Capaciteit</th>
                         <th>Status</th>
                         <th>Acties</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (!empty($tables)): ?>
-                        <?php foreach ($tables as $table): ?>
-                            <tr>
-                                <td><?= htmlspecialchars((string)$table['id']) ?></td>
-                                <td><strong><?= htmlspecialchars($table['table_number']) ?></strong></td>
-                                <td><?= htmlspecialchars((string)$table['capacity']) ?> personen</td>
-                                <td>
-                                    <?php 
-                                    $statusClass = match($table['status']) {
-                                        'available'   => 'bg-success',
-                                        'occupied'    => 'bg-danger',
-                                        'out_of_order' => 'bg-secondary',
-                                        default       => 'bg-info'
-                                    };
-                                    ?>
-                                    <span class="badge <?= $statusClass ?>">
-                                        <?= htmlspecialchars($table['status']) ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="/admin/tables/edit/<?= $table['id'] ?>" class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="/admin/tables/delete/<?= $table['id'] ?>" method="POST" class="d-inline" onsubmit="return confirm('Weet u zeker dat u deze tafel wilt verwijderen?');">
-                                            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
+                    <?php foreach ($tables as $table): ?>
                         <tr>
-                            <td colspan="5" class="text-center">Geen tafels gevonden in de database.</td>
+                            <td><strong><?= $table['table_number']; ?></strong></td>
+                            <td><?= $table['capacity']; ?> personen</td>
+                            <td>
+                                <span class="badge bg-<?= $table['status'] === 'available' ? 'success' : 'danger'; ?>">
+                                    <?= $table['status']; ?>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/admin/tables/edit/<?= $table['id']; ?>" class="btn btn-sm btn-info text-white">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                
+                                <form action="/admin/tables/delete/<?= $table['id']; ?>" method="POST" class="d-inline" onsubmit="return confirm('Weet u het zeker?');">
+                                    <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>

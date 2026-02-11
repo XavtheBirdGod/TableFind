@@ -6,22 +6,26 @@ namespace App\Core;
 /**
  * Router Class
  * Verantwoordelijk voor het routeren van verzoeken naar de juiste controllers.
+ * Nu met verbeterde regex voor optionele trailing slashes.
  */
 final class Router
 {
     private array $routes = [];
 
     /**
-     * Voegt een route toe.
+     * Voegt een route toe en normaliseert het pad.
      */
     public function add(string $method, string $path, string $handler): void
     {
-        // Zet parameters zoals {id} om naar regex
+        // Verwijder trailing slash van het pad voor consistentie
+        $path = ($path !== '/') ? rtrim($path, '/') : $path;
+        
+        // Zet parameters zoals {id} om naar regex (\d+)
         $pattern = preg_replace('/\{id\}/', '(\d+)', $path);
         
         $this->routes[] = [
             'method'  => strtoupper($method),
-            'path'    => "#^" . $pattern . "$#",
+            'path'    => "#^" . $pattern . "/?$#", // Maakt trailing slash optioneel
             'handler' => $handler
         ];
     }
@@ -31,8 +35,8 @@ final class Router
      */
     public function dispatch(string $uri, string $method): void
     {
-        // Verwijder query parameters voor matching
         $path = parse_url($uri, PHP_URL_PATH);
+        $path = ($path !== '/') ? rtrim($path, '/') : $path;
         $method = strtoupper($method);
 
         foreach ($this->routes as $route) {
@@ -52,8 +56,6 @@ final class Router
             }
         }
 
-        // Als er geen match is, toon 404
-        // Als er geen match is, toon 404 via de ErrorController
         $errorController = new \App\Controllers\ErrorController();
         $errorController->notFound();
     }
