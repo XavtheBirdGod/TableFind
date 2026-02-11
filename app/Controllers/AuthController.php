@@ -20,16 +20,17 @@ class AuthController
     {
         /**
          * Gebruik de static factory methode 'make' in plaats van 'new'.
-         * Dit lost de ArgumentCountError op omdat 'make' de PDO-verbinding injecteert.
+         * Dit injecteert de PDO-verbinding correct in de repository.
          */
         $this->usersRepository = UsersRepository::make();
     }
 
     /**
-     * Toont het inlogformulier.
+     * Toont het inlogformulier aan de gebruiker.
      */
     public function showLogin(): void
     {
+        // Controleer of de gebruiker al is ingelogd
         if (isset($_SESSION['user_id'])) {
             header('Location: /admin/dashboard');
             exit;
@@ -38,12 +39,14 @@ class AuthController
     }
 
     /**
-     * Verifieert de gebruiker.
+     * Verifieert de gebruikersgegevens tegen de database.
      */
     public function authenticate(): void
     {
+        // Sanitize invoergegevens om XSS te voorkomen
         $input = Security::sanitize($_POST);
         
+        // Valideer CSRF-token voor beveiliging tegen cross-site request forgery
         if (!Security::validateCsrfToken($input['csrf_token'] ?? '')) {
             $_SESSION['flash'] = ['message' => 'Ongeldige sessie (CSRF).', 'type' => 'danger'];
             header('Location: /login');
@@ -51,41 +54,46 @@ class AuthController
         }
 
         $email = $input['email'] ?? '';
-        $password = $_POST['password'] ?? ''; // Wachtwoord niet trimmen/sanitizen om speciale karakters te behouden
+        $password = $_POST['password'] ?? ''; // Wachtwoord niet trimmen om integriteit te behouden
 
-        // Ontwikkeling Backdoor
-        if ($email === 'admin@admin.com' && $password === 'password123') {
-            $_SESSION['user_id'] = 999;
-            $_SESSION['user_name'] = 'Super Admin (Dev)';
-            $_SESSION['user_role'] = 1; // ID 1 = Admin
-            session_regenerate_id(true);
-            header('Location: /admin/dashboard');
-            exit;
-        }
-
+        /**
+         * Zoek de gebruiker in de database via de repository.
+         * De hardcoded backdoor is verwijderd voor betere beveiliging.
+         */
         $user = $this->usersRepository->findByEmail($email);
 
+        // Verifieer wachtwoord met de PHP password_verify functie
         if ($user && password_verify($password, $user['password_hash'])) {
+            // Sla essentiële gebruikersgegevens op in de sessie
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
-            $_SESSION['user_role'] = (int)$user['role_id']; // Zorg dat dit een integer is
+            $_SESSION['user_role'] = (int)$user['role_id']; 
 
+            // Regenereer sessie-ID om session fixation aanvallen te voorkomen
             session_regenerate_id(true);
             header('Location: /admin/dashboard');
             exit;
         }
 
+        // Foutmelding bij mislukte inlogpoging
         $_SESSION['flash'] = ['message' => 'Ongeldige e-mail of wachtwoord.', 'type' => 'danger'];
         header('Location: /login');
         exit;
     }
 
     /**
-     * Logt de gebruiker uit.
+     * Logt de gebruiker uit en vernietigt de sessie.
      */
     public function logout(): void
     {
         $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
         session_destroy();
         header('Location: /login');
         exit;
