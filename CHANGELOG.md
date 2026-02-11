@@ -1,14 +1,14 @@
-# Changelog
+# Changelog - TableFind
 
-All notable changes to this project will be documented in this file.
+## [Jihad] - Backend Architect 
+### Toegevoegd
+* **Core Architectuur**: Opzet van de Router en de Database-laag voor directe toegang.
+* **Data Layer**: Volledige implementatie van `ReservationsRepository` en `TablesRepository`.
+* **Refactoring**: Verwijderen van alle user- en authenticatie-logica voor een sneller systeem.
+* **Documentatie**: Update van alle technische bestanden naar de nieuwe accountless-structuur.
 
-- Creation and setup of the project. — Jihad
-- Frontend user interface. — Xanthe
-- Backend, repositories, controller, login, etc — Jihad
-- Changes to style, minor bug fixes to admin side — Xanthe
-- Success button and fixing to frontend in book form — Xanthe
-- Set up md files — Xanthe / filling in md files — Jihad
-
-
-Feel free to change anything you want Jihad, 
-these are the little things I could remember from the top of my head only
+## [Xanthe] - Frontend Developer & UI Specialist
+### Toegevoegd
+* **UI Design**: Ontwerp van de publieke homepagina en de administratieve interface.
+* **Documentatie**: Structurering en voorbereiding van het Test Logboek en Team Plan.
+* **UX Visuals**: Styling van de status-indicators voor de restauranttafels.
