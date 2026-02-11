@@ -53,8 +53,8 @@ final class Router
         }
 
         // Als er geen match is, toon 404
-        http_response_code(404);
-        echo "<h1>404 - Pagina niet gevonden</h1>";
-        echo "<p>De opgevraagde route <strong>" . htmlspecialchars($path) . "</strong> is niet geconfigureerd.</p>";
+        // Als er geen match is, toon 404 via de ErrorController
+        $errorController = new \App\Controllers\ErrorController();
+        $errorController->notFound();
     }
 }
