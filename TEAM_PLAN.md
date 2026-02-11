@@ -1,23 +1,12 @@
-# Team Plan - Tabel Reserveringssysteem (TableFind)
+# Team Plan - Tabel Reserveringssysteem
 
-## Domain
-Het project **TableFind** is een gestroomlijnde beheerinterface voor restaurantreserveringen. Het systeem is ontworpen voor directe toegang en gericht op operationele snelheid in een vertrouwde omgeving, zonder de overhead van gebruikersaccounts.
+## Project Doelstelling
+Het bouwen van een robuust, accountloos beheerplatform voor restauranttafels met een strikte scheiding van verantwoordelijkheden volgens de MVC-standaarden.
 
-## Entities
-1. **Table**: De fysieke tafels van het restaurant (tafelnummer, capaciteit, status).
-2. **Reservation**: De kernentiteit die klantgegevens koppelt aan specifieke tafels en tijdstippen.
+## Entities & Verhoudingen
+* **Tafels (1)** <---> **Reserveringen (N)**: Een tafel kan meerdere reserveringen hebben over verschillende tijden.
+* **Status Management**: Gebruik van ENUM-waarden in de database om consistentie te waarborgen binnen het Model.
 
-## Database Structure
-Het systeem maakt gebruik van een minimalistisch en efficiënt schema:
-* **reservations**: Slaat alle boekingsdetails op, inclusief status en een optionele Foreign Key naar de tafels.
-* **tables**: Beheert de configuratie en beschikbaarheid van de zitplaatsen.
-
-
-
-## Task Division
-* **Jihad (Backend Lead)**: Ontwerp van de data-architectuur, implementatie van de Repositories en de functionele logica voor het reserveringsbeheer.
-* **Xanthe (Frontend & UI)**: Realisatie van de visuele interface voor zowel de publieke boekingspagina als het administratieve dashboard.
-
-## Agreements
-* **Directe Toegang**: Het systeem is geoptimaliseerd voor intern gebruik, waarbij snelheid belangrijker is dan toegangscontrole.
-* **Data Validatie**: Alle invoer wordt via de controllers streng gecontroleerd om de integriteit van de database te waarborgen.
+## Task Division (MVC Focus)
+* **Jihad**: Verantwoordelijk voor de Model-laag (Repositories & Database) en de Controller-logica.
+* **Xanthe**: Verantwoordelijk voor de View-laag (HTML/CSS templates) en de integratie van UI-feedback.

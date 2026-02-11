@@ -1,14 +1,10 @@
-# Changelog - TableFind
+# Changelog
 
-## [Jihad] - Backend Architect 
-### Toegevoegd
-* **Core Architectuur**: Opzet van de Router en de Database-laag voor directe toegang.
-* **Data Layer**: Volledige implementatie van `ReservationsRepository` en `TablesRepository`.
-* **Refactoring**: Verwijderen van alle user- en authenticatie-logica voor een sneller systeem.
-* **Documentatie**: Update van alle technische bestanden naar de nieuwe accountless-structuur.
+## [Jihad]
+* **MVC Core**: Implementatie van de `View` class met support voor data-passing naar templates.
+* **Repository Pattern**: Volledige isolatie van SQL-logica in de Model-laag.
+* **Refactoring**: Optimalisatie van de Controllers voor een "Lean Controller" architectuur.
 
-## [Xanthe] - Frontend Developer & UI Specialist
-### Toegevoegd
-* **UI Design**: Ontwerp van de publieke homepagina en de administratieve interface.
-* **Documentatie**: Structurering en voorbereiding van het Test Logboek en Team Plan.
-* **UX Visuals**: Styling van de status-indicators voor de restauranttafels.
+## [Xanthe]
+* **View Templates**: Creatie van modulaire view-bestanden (header, footer, sidebar) voor hergebruik.
+* **UI/UX**: Implementatie van flash-notificaties binnen de View-laag.
